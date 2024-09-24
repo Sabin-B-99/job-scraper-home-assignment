@@ -1,0 +1,16 @@
+###
+GET http://localhost:8081/api/scraper?
+    keyword=java
+
+###
+GET localhost:8081/api/scraper
+
+###
+GET localhost:8081/api/jobs?
+    keyword=java
+
+###
+GET localhost:8081/api/jobs
+
+###
+GET localhost:8081/api/jobs/10

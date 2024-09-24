@@ -1,12 +1,16 @@
 package com.homeassignment.jobscraper.scraper;
 
-import ch.qos.logback.classic.encoder.JsonEncoder;
+
+import com.homeassignment.jobscraper.entities.Jobs;
+import com.homeassignment.jobscraper.services.JobsService;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -18,40 +22,67 @@ import java.util.regex.Pattern;
 
 //TODO: Handle IOException better
 //TODO: Change url from String object to URL objects
-//TODO: Required info - job title, company name, location, and job description
+//TODO: Probable error cases: Elements not found, String null, Matcher doesnot match regex
+@Component
 public class JobScraper {
 
-    private final String keyword;
-
     private final String rootUrl = "https://www.merojob.com";
+    private final JobsService jobsService;
 
-    private String searchUrl;
+    private int savedJobs;
+    private int totalJobsFound;
 
-    private int resultPageBeingScraped;
 
-
-    public JobScraper(String keyword) {
-        this.keyword = keyword;
+    public JobScraper(JobsService jobsService) {
+        this.jobsService = jobsService;
+        this.savedJobs = 0;
     }
 
-    public void scrapeMeroJobs(){
+    public void scrapeMeroJobs(String keyword){
+        if(keyword.isBlank()){
+            scrapeAll();
+        }else {
+            scrapeKeyword(keyword);
+        }
+    }
+
+    private void scrapeAll(){
         try {
-            Document initialResponseDocument = searchKeyWord();
+            Document initialResponseDocument = searchAll();
             int noOfResultPages = getNumberOfPages(initialResponseDocument);
             List<String> searchPageLinks = getJobDetailsPageLinkFromListingPage(initialResponseDocument);
-            scrapeJobDetails(searchPageLinks);
-            for (int i = 0; i < noOfResultPages; i++) {
-                //TODO: Implement later
+            scrapeJobDetailsAndSaveToDB(searchPageLinks);
+            for (int i = 2; i <= noOfResultPages; i++) {
                 searchPageLinks= getJobDetailsPageLinkFromListingPage(i);
-                scrapeJobDetails(searchPageLinks);
+                scrapeJobDetailsAndSaveToDB(searchPageLinks);
             }
         }catch (IOException e){
             System.out.println(e.getMessage());
         }
     }
 
-    private Document searchKeyWord() throws IOException {
-        searchUrl = rootUrl + "/search?q=" + URLEncoder.encode(keyword, StandardCharsets.UTF_8);
+    private void scrapeKeyword(String keyword){
+        try {
+            Document initialResponseDocument = searchKeyWord(keyword);
+            int noOfResultPages = getNumberOfPages(initialResponseDocument);
+            List<String> searchPageLinks = getJobDetailsPageLinkFromListingPage(initialResponseDocument);
+            scrapeJobDetailsAndSaveToDB(searchPageLinks);
+            for (int i = 2; i <= noOfResultPages; i++) {
+                searchPageLinks= getJobDetailsPageLinkFromListingPage(keyword, i);
+                scrapeJobDetailsAndSaveToDB(searchPageLinks);
+            }
+        }catch (IOException e){
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private Document searchKeyWord(String keyword) throws IOException {
+        String searchUrl = rootUrl + "/search?q=" + URLEncoder.encode(keyword, StandardCharsets.UTF_8);
+        return makeConnectionAndGetResponse(searchUrl);
+    }
+
+    private Document searchAll() throws IOException{
+        String searchUrl = rootUrl + "/search/";
         return makeConnectionAndGetResponse(searchUrl);
     }
 
@@ -64,8 +95,7 @@ public class JobScraper {
     }
 
 
-    //TODO: Can i make use of optional here??
-    //TODO: Check .matcher documentation to see what it returns if no match is found
+
     private int getNumberOfPages(Document initalSearchResponseDocument){
         String jobCount = initalSearchResponseDocument
                 .selectFirst("#job-count")
@@ -81,8 +111,8 @@ public class JobScraper {
         }
 
         int resultPerPage = Integer.parseInt(matchResult.get(1));
-        int totalNoOfResult = Integer.parseInt(matchResult.get(2));
-        return Math.ceilDiv(totalNoOfResult, resultPerPage);
+        this.totalJobsFound = Integer.parseInt(matchResult.get(2));
+        return Math.ceilDiv(totalJobsFound, resultPerPage);
     }
 
     private List<String> getJobDetailsPageLinkFromListingPage(Document responseDocument){
@@ -96,22 +126,43 @@ public class JobScraper {
     }
 
 
-    private List<String> getJobDetailsPageLinkFromListingPage(int pageNo) throws IOException{
-        searchUrl = rootUrl + "/search?q="
+    private List<String> getJobDetailsPageLinkFromListingPage(String keyword, int pageNo) throws IOException{
+        String searchUrl = rootUrl + "/search?q="
                 + URLEncoder.encode(keyword, StandardCharsets.UTF_8)
                 + "&page=" + pageNo;
         return getJobDetailsPageLinkFromListingPage(makeConnectionAndGetResponse(searchUrl));
     }
 
-    private void scrapeJobDetails(List<String> detailPageLinks) throws IOException{
-        for (String link : detailPageLinks){
-            Document detailPageResponse = makeConnectionAndGetResponse(rootUrl+link);
+    private List<String> getJobDetailsPageLinkFromListingPage(int pageNo) throws IOException{
+        String searchUrl = rootUrl + "/search/"
+                + "?page=" + pageNo;
+        return getJobDetailsPageLinkFromListingPage(makeConnectionAndGetResponse(searchUrl));
+    }
 
+    private void scrapeJobDetailsAndSaveToDB(List<String> detailPageLinks) throws IOException{
+        for (String link : detailPageLinks){
+            String detailsUrl = rootUrl + link;
+            System.out.println("[Scraping Detail] " + detailsUrl);
+            Document detailPageResponse = makeConnectionAndGetResponse(detailsUrl);
+            Jobs job = new Jobs();
+            job.setJobTitle(scrapeJobTitle(detailPageResponse));
+            job.setCompanyName(scrapeCompanyName(detailPageResponse));
+            job.setLocation(scrapeJobLocation(detailPageResponse));
+            job.setJobDescription(scrapeJobDescription(detailPageResponse));
+            job.setJobInformation(scrapeJobInformation(detailPageResponse));
+            job.setJobDetailPageLink(detailsUrl);
+
+            jobsService.saveJob(job);
+            savedJobs++;
+            System.out.println("[Data Saved] " + detailsUrl);
+            System.out.println("[Saved / Total] " + savedJobs + "/" + totalJobsFound);
         }
     }
 
     private String scrapeCompanyName(Document detailsPageResponseDocument){
-        return detailsPageResponseDocument.selectFirst("span[itemprop=name]").text();
+        Element nameElem = detailsPageResponseDocument.selectFirst("span[itemprop=name]");
+        if(nameElem == null) nameElem = detailsPageResponseDocument.selectFirst("p[itemprop=name]");
+        return nameElem.text();
     }
 
     private String scrapeJobTitle(Document detailsPageResponseDocument){
@@ -134,22 +185,40 @@ public class JobScraper {
         StringBuilder jobDescriptionBuilder = new StringBuilder();
         jobDescriptionBuilder.append("Job Description").append("\n");
 
-        String description = detailsPageResponseDocument
-                .selectFirst("div[itemprop=description] > p")
-                .text();
+        Element descriptionPara = detailsPageResponseDocument
+                .selectFirst("div[itemprop=description] > p");
+
+        String description = "\n";
+        if(descriptionPara != null) description = descriptionPara.text();
 
         jobDescriptionBuilder.append(description)
                 .append("\n")
                 .append("Responsibilities")
                 .append("\n");
 
-        Element responsibilities =  detailsPageResponseDocument.selectFirst("div[itemprop=description] > ul");
-        Elements responsibilityList = responsibilities.select("li");
+        Elements responsibilities =  detailsPageResponseDocument.select("div[itemprop=description] > ul > li");
+        if(responsibilities == null) {
+            responsibilities = detailsPageResponseDocument.select("div[itemprop=description] > p");
+            jobDescriptionBuilder.setLength(0);
+            jobDescriptionBuilder.append("Job Description").append("\n");
+        }
 
-        for (Element responsibility: responsibilityList){
+        for (Element responsibility: responsibilities){
             jobDescriptionBuilder.append(responsibility.text()).append("\n");
         }
         return jobDescriptionBuilder.toString();
+    }
+
+    private String scrapeJobLocation(Document detailsPageResponseDocument){
+        String jobInfo = scrapeJobInformation(detailsPageResponseDocument);
+        JSONObject jsonObject = new JSONObject(jobInfo);
+        String location = null;
+        try {
+          location =  jsonObject.getString("Job Location");
+        }catch (JSONException e){
+            location = "N/A";
+        }
+        return location;
     }
 
 }
