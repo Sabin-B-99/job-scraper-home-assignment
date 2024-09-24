@@ -1,6 +1,7 @@
 package com.homeassignment.jobscraper.repositories;
 
 import com.homeassignment.jobscraper.entities.Jobs;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -13,8 +14,14 @@ import java.util.Optional;
 public interface JobsRepository extends PagingAndSortingRepository<Jobs, Integer>, CrudRepository<Jobs, Integer> {
 
     @Query(value = "SELECT * FROM jobs ", countQuery = "SELECT COUNT(*) FROM jobs", nativeQuery = true)
-    List<Jobs> getAllJobs(Pageable pageable);
+    Page<Jobs> getAllJobs(Pageable pageable);
 
+    @Query(value = "SELECT * FROM jobs WHERE jobs.id = :id", nativeQuery = true)
     Optional<Jobs> getJobsById(@Param("id") int id);
+
+    @Query(value = "SELECT * FROM jobs WHERE jobs.job_title LIKE '%keyword%' OR jobs.job_description LIKE '%keyword%'",
+        countQuery = "SELECT COUNT(*) FROM jobs WHERE jobs.job_title LIKE '%keyword%' OR jobs.job_description LIKE '%keyword%'",
+        nativeQuery = true)
+    Page<Jobs> getJobsByKeyWord(@Param("keyword") String keyword, Pageable pageable);
 
 }

@@ -14,3 +14,14 @@ GET localhost:8081/api/jobs
 
 ###
 GET localhost:8081/api/jobs/10
+
+###
+GET http://localhost:8081/api/jobs?
+    keyword=java&
+    pageNo=4&
+    pageSize=3
+
+###
+GET http://localhost:8081/api/jobs?
+    pageNo=0&
+    pageSize=10

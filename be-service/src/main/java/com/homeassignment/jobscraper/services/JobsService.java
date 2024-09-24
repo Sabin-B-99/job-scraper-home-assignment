@@ -1,11 +1,12 @@
 package com.homeassignment.jobscraper.services;
 
+import com.homeassignment.jobscraper.dtos.JobsResponse;
 import com.homeassignment.jobscraper.entities.Jobs;
 
 import java.util.List;
 
 public interface JobsService {
-    List<Jobs> getAllJobs();
+    JobsResponse getAllJobs(String keyword, int page, int pageSize);
     Jobs getJobById(int id);
-    Jobs saveJob(Jobs job);
+    void saveJob(Jobs job);
 }

@@ -1,10 +1,9 @@
 package com.homeassignment.jobscraper.controller.jobs;
 
+import com.homeassignment.jobscraper.dtos.JobsResponse;
 import com.homeassignment.jobscraper.entities.Jobs;
 import com.homeassignment.jobscraper.services.JobsService;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping ("/api/jobs")
@@ -16,13 +15,16 @@ public class JobsController {
     }
 
     @GetMapping
-    private List<Jobs> getJobByKeyword(@RequestParam(value = "keyword", defaultValue = "") String keyword){
-        return null;
+    private JobsResponse getJobByKeyword(
+            @RequestParam(value = "keyword", defaultValue = "", required = false) String keyword,
+            @RequestParam(value = "pageNo", defaultValue = "0", required = false) int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = ""+Integer.MAX_VALUE, required = false) int pageSize){
+        return jobsService.getAllJobs(keyword, pageNo, pageSize);
     }
 
     @GetMapping("{id}")
     private Jobs getJobById(@PathVariable int id){
-        return null;
+        return jobsService.getJobById(id);
     }
 
 }
