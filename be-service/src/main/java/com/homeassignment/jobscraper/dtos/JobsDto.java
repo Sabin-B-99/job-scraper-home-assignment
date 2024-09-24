@@ -1,37 +1,29 @@
-package com.homeassignment.jobscraper.entities;
+package com.homeassignment.jobscraper.dtos;
 
-import jakarta.persistence.*;
+import com.homeassignment.jobscraper.entities.Jobs;
 
-@Entity
-@Table(name = "jobs")
-public class Jobs {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+public class  JobsDto {
     private int id;
-
-    @Column(name = "job_title")
     private String jobTitle;
-
-    @Column(name = "company_name")
     private String companyName;
-
-    @Column(name = "location")
     private String location;
-
-    @Column(name = "job_description")
     private String jobDescription;
-
-    @Column(name = "job_information")
     private String jobInformation;
-
-    @Column(name = "job_detail_page_link")
     private String jobDetailPageLink;
 
-    @Column(name = "duplicate_check_hash")
-    private String duplicateCheckHash;
+    public JobsDto() {
+    }
 
-    public Jobs() {
+    public static JobsDto fromJobs(Jobs jobs){
+        JobsDto jobsDto = new JobsDto();
+        jobsDto.setId(jobs.getId());
+        jobsDto.setCompanyName(jobs.getCompanyName());
+        jobsDto.setJobTitle(jobs.getJobTitle());
+        jobsDto.setJobDescription(jobs.getJobDescription());
+        jobsDto.setLocation(jobs.getLocation());
+        jobsDto.setJobInformation(jobs.getJobInformation());
+        jobsDto.setJobDetailPageLink(jobs.getJobDetailPageLink());
+        return jobsDto;
     }
 
     public int getId() {
@@ -88,13 +80,5 @@ public class Jobs {
 
     public void setJobDetailPageLink(String jobDetailPageLink) {
         this.jobDetailPageLink = jobDetailPageLink;
-    }
-
-    public String getDuplicateCheckHash() {
-        return duplicateCheckHash;
-    }
-
-    public void setDuplicateCheckHash(String duplicateCheckHash) {
-        this.duplicateCheckHash = duplicateCheckHash;
     }
 }

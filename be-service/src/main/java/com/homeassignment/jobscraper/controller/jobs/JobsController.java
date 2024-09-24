@@ -1,5 +1,6 @@
 package com.homeassignment.jobscraper.controller.jobs;
 
+import com.homeassignment.jobscraper.dtos.JobsDto;
 import com.homeassignment.jobscraper.dtos.JobsResponse;
 import com.homeassignment.jobscraper.entities.Jobs;
 import com.homeassignment.jobscraper.services.JobsService;
@@ -27,7 +28,7 @@ public class JobsController {
     }
 
     @GetMapping("{id}")
-    private ResponseEntity<Jobs> getJobById(@PathVariable int id){
+    private ResponseEntity<JobsDto> getJobById(@PathVariable int id){
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(jobsService.getJobById(id));

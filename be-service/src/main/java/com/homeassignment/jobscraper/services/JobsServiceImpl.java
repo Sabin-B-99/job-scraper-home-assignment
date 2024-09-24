@@ -1,5 +1,6 @@
 package com.homeassignment.jobscraper.services;
 
+import com.homeassignment.jobscraper.dtos.JobsDto;
 import com.homeassignment.jobscraper.dtos.JobsResponse;
 import com.homeassignment.jobscraper.entities.Jobs;
 import com.homeassignment.jobscraper.exceptions.JobNotFoundException;
@@ -34,7 +35,10 @@ public class JobsServiceImpl implements JobsService{
     private JobsResponse jobsResponse(Page<Jobs> jobs){
         JobsResponse jobsResponse = new JobsResponse();
         if(jobs.getContent().isEmpty()) throw new JobNotFoundException("No jobs found. :(", HttpStatus.NOT_FOUND, LocalDateTime.now());
-        jobsResponse.setResponseContents(jobs.getContent());
+        jobsResponse.setResponseContents(jobs.getContent()
+                .stream()
+                .map(JobsDto::fromJobs)
+                .toList());
         jobsResponse.setPageNo(jobs.getNumber());
         jobsResponse.setPageSize(jobs.getSize());
         jobsResponse.setTotalElements(jobs.getTotalElements());
@@ -44,14 +48,20 @@ public class JobsServiceImpl implements JobsService{
     }
 
     @Override
-    public Jobs getJobById(int id) {
+    public JobsDto getJobById(int id) {
         return jobsRepository
                 .getJobsById(id)
+                .map(JobsDto::fromJobs)
                 .orElseThrow(() -> new JobNotFoundException("Job with id " + id + " not found. :(", HttpStatus.NOT_FOUND, LocalDateTime.now()));
     }
 
     @Override
     public void saveJob(Jobs job) {
         jobsRepository.save(job);
+    }
+
+    @Override
+    public Jobs getDuplicateCheckHashById(String hashVal) {
+        return jobsRepository.getDuplicateCheckHashById(hashVal);
     }
 }

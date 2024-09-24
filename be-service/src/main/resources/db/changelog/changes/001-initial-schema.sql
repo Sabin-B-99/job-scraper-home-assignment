@@ -5,5 +5,6 @@ CREATE TABLE IF NOT EXISTS jobs (
     location VARCHAR(256) NOT NULL,
     job_description TEXT,
     job_information TEXT,
-    job_detail_page_link VARCHAR(256) NOT NULL
+    job_detail_page_link VARCHAR(256) NOT NULL,
+    duplicate_check_hash VARCHAR(256) NOT NULL
 );

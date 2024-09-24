@@ -1,11 +1,9 @@
 package com.homeassignment.jobscraper.dtos;
 
-import com.homeassignment.jobscraper.entities.Jobs;
-
 import java.util.List;
 
 public class JobsResponse {
-    private List<Jobs> responseContents;
+    private List<JobsDto> responseContents;
     private int pageNo;
     private int pageSize;
     private long totalElements;
@@ -16,11 +14,11 @@ public class JobsResponse {
     public JobsResponse() {
     }
 
-    public List<Jobs> getResponseContents() {
+    public List<JobsDto> getResponseContents() {
         return responseContents;
     }
 
-    public void setResponseContents(List<Jobs> responseContents) {
+    public void setResponseContents(List<JobsDto> responseContents) {
         this.responseContents = responseContents;
     }
 

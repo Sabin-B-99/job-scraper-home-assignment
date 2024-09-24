@@ -1,6 +1,5 @@
 package com.homeassignment.jobscraper.scraper;
 
-
 import com.homeassignment.jobscraper.entities.Jobs;
 import com.homeassignment.jobscraper.exceptions.ScrapingException;
 import com.homeassignment.jobscraper.services.JobsService;
@@ -17,14 +16,15 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
-//TODO: Check for duplicate jobs before saving to datatbase
-//TODO: Change url from String object to URL objects
 @Component
 public class MeroJobsScraper {
 
@@ -33,14 +33,17 @@ public class MeroJobsScraper {
 
     private int savedJobs;
     private int totalJobsFound;
+    private int duplicateCount;
 
 
     public MeroJobsScraper(JobsService jobsService) {
         this.jobsService = jobsService;
-        this.savedJobs = 0;
     }
 
     public String scrapeMeroJobs(String keyword){
+        totalJobsFound = 0;
+        savedJobs = 0;
+        duplicateCount = 0;
         if(keyword.isBlank()){
            return scrapeAllJobs();
         }else {
@@ -57,7 +60,7 @@ public class MeroJobsScraper {
             searchPageLinks= getJobDetailsPageLinkFromListingPage(i);
             scrapeJobDetailsAndSaveToDB(searchPageLinks);
         }
-        return "Total jobs found: " + totalJobsFound + " | Saved Jobs: " + savedJobs;
+        return "Total jobs found: " + totalJobsFound + " | New  Jobs Saved: " + savedJobs + " | Duplicate jobs: " + duplicateCount;
     }
 
     private String scrapeJobsByKeyword(String keyword){
@@ -69,7 +72,7 @@ public class MeroJobsScraper {
             searchPageLinks= getJobDetailsPageLinkFromListingPage(keyword, i);
             scrapeJobDetailsAndSaveToDB(searchPageLinks);
         }
-        return "Total jobs found: " + totalJobsFound + " | Saved Jobs: " + savedJobs;
+        return "Total jobs found: " + totalJobsFound + " | New  Jobs Saved: " + savedJobs + " | Duplicate jobs: " + duplicateCount;
     }
 
     private Document searchKeyWord(String keyword){
@@ -151,11 +154,37 @@ public class MeroJobsScraper {
             job.setJobDescription(scrapeJobDescription(detailPageResponse));
             job.setJobInformation(scrapeJobInformation(detailPageResponse));
             job.setJobDetailPageLink(detailsUrl);
+            job.setDuplicateCheckHash(hashForDuplicateVerification(job));
 
-            jobsService.saveJob(job);
-            savedJobs++;
-            System.out.println("[Data Saved] " + detailsUrl);
-            System.out.println("[Saved / Total] " + savedJobs + "/" + totalJobsFound);
+            if(!isDuplicate(job)) {
+                jobsService.saveJob(job);
+                savedJobs++;
+                System.out.println("[Data Saved] " + detailsUrl);
+            }else{
+                System.out.println("[Duplicate Job] " + detailsUrl);
+                duplicateCount++;
+            }
+            System.out.println("[New Jobs Saved / Duplicate Count / Total Count] " + savedJobs + "/" + duplicateCount +"/"+ totalJobsFound);
+        }
+    }
+
+    private boolean isDuplicate(Jobs jobs){
+        Jobs existingJob = jobsService.getDuplicateCheckHashById(jobs.getDuplicateCheckHash());
+        if(existingJob == null) return false;
+        return existingJob.getJobTitle().equals(jobs.getJobTitle())
+                && existingJob.getCompanyName().equals(jobs.getCompanyName())
+                && existingJob.getJobDetailPageLink().equals(jobs.getJobDetailPageLink())
+                && existingJob.getDuplicateCheckHash().equals(jobs.getDuplicateCheckHash());
+    }
+
+    private String hashForDuplicateVerification(Jobs jobs){
+        String stringToHash = jobs.getCompanyName() + jobs.getJobTitle() + jobs.getJobDetailPageLink();
+        try{
+            MessageDigest sha = MessageDigest.getInstance("SHA-256");
+            byte[] encodedHash = sha.digest(stringToHash.getBytes(StandardCharsets.UTF_8));
+            return Arrays.toString(encodedHash);
+        }catch (NoSuchAlgorithmException e){
+            throw new ScrapingException("Could not validate duplicate job", HttpStatus.INTERNAL_SERVER_ERROR, LocalDateTime.now());
         }
     }
 

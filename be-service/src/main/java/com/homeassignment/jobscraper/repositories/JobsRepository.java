@@ -24,4 +24,6 @@ public interface JobsRepository extends PagingAndSortingRepository<Jobs, Integer
         nativeQuery = true)
     Page<Jobs> getJobsByKeyWord(@Param("keyword") String keyword, Pageable pageable);
 
+    @Query(value = "SELECT * FROM jobs WHERE jobs.duplicate_check_hash = :hashVal", nativeQuery = true)
+    Jobs getDuplicateCheckHashById(@Param("hashVal") String hashVal);
 }
