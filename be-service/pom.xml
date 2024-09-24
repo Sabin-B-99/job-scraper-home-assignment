@@ -19,7 +19,8 @@
     </licenses>
     <developers>
         <developer/>
-    </developers>
+    </developers>        <!-- https://mvnrepository.com/artifact/org.json/json -->
+
     <scm>
         <connection/>
         <developerConnection/>
@@ -46,6 +47,13 @@
             <artifactId>jsoup</artifactId>
             <version>1.18.1</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20240303</version>
+        </dependency>
+
 
     </dependencies>
 

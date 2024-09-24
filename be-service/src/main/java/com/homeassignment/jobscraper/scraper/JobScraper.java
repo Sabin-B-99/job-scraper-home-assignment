@@ -1,5 +1,7 @@
 package com.homeassignment.jobscraper.scraper;
 
+import ch.qos.logback.classic.encoder.JsonEncoder;
+import org.json.JSONObject;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -65,8 +67,8 @@ public class JobScraper {
     //TODO: Can i make use of optional here??
     //TODO: Check .matcher documentation to see what it returns if no match is found
     private int getNumberOfPages(Document initalSearchResponseDocument){
-        String jobCount = initalSearchResponseDocument.select("#job-count")
-                .first()
+        String jobCount = initalSearchResponseDocument
+                .selectFirst("#job-count")
                 .text();
         List<String> matchResult = Pattern.compile("\\d+")
                 .matcher(jobCount)
@@ -108,20 +110,46 @@ public class JobScraper {
         }
     }
 
-    private void scrapeCompanyName(Document detailsPageResponseDocument){
-        // span[itemprop=name]
+    private String scrapeCompanyName(Document detailsPageResponseDocument){
+        return detailsPageResponseDocument.selectFirst("span[itemprop=name]").text();
     }
 
-    private void scrapeJobTitle(Document detailsPageResponseDocument){
-        // h1[itemprop=title]
+    private String scrapeJobTitle(Document detailsPageResponseDocument){
+        return detailsPageResponseDocument.selectFirst("h1[itemprop=title]").text();
     }
 
-    private void scrapeJobInformation(Document detailsPageResopnseDocument){
-        //table > tbody > tr > td [each tr has 3 td]
+    private String scrapeJobInformation(Document detailsPageResopnseDocument){
+        Elements tableRows = detailsPageResopnseDocument.select("table > tbody > tr");
+        JSONObject jsonObject = new JSONObject();
+        for(Element tableRow: tableRows){
+            Elements tableData = tableRow.select("td");
+            String key =  tableData.get(0).text();
+            String value = tableData.get(2).text();
+            jsonObject.put(key, value);
+        }
+        return jsonObject.toString();
     }
 
-    private void scrapeJobDescription(Document detailsPageResponseDocument){
-        // div[itemprop=description]
+    private String scrapeJobDescription(Document detailsPageResponseDocument){
+        StringBuilder jobDescriptionBuilder = new StringBuilder();
+        jobDescriptionBuilder.append("Job Description").append("\n");
+
+        String description = detailsPageResponseDocument
+                .selectFirst("div[itemprop=description] > p")
+                .text();
+
+        jobDescriptionBuilder.append(description)
+                .append("\n")
+                .append("Responsibilities")
+                .append("\n");
+
+        Element responsibilities =  detailsPageResponseDocument.selectFirst("div[itemprop=description] > ul");
+        Elements responsibilityList = responsibilities.select("li");
+
+        for (Element responsibility: responsibilityList){
+            jobDescriptionBuilder.append(responsibility.text()).append("\n");
+        }
+        return jobDescriptionBuilder.toString();
     }
 
 }
