@@ -1,9 +1,9 @@
 ###
-GET http://localhost:8081/api/scraper?
+POST http://localhost:8081/api/scraper?
     keyword=java
 
 ###
-GET localhost:8081/api/scraper
+POST http://localhost:8081/api/scraper
 
 ###
 GET localhost:8081/api/jobs?
@@ -18,7 +18,7 @@ GET localhost:8081/api/jobs/10
 ###
 GET http://localhost:8081/api/jobs?
     keyword=java&
-    pageNo=4&
+    pageNo=0&
     pageSize=3
 
 ###

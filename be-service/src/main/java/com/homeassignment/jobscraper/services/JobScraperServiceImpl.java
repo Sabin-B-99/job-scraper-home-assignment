@@ -1,18 +1,18 @@
 package com.homeassignment.jobscraper.services;
 
-import com.homeassignment.jobscraper.scraper.JobScraper;
+import com.homeassignment.jobscraper.scraper.MeroJobsScraper;
 import org.springframework.stereotype.Service;
 
 @Service
 public class JobScraperServiceImpl implements JobScraperService{
 
-    private final JobScraper scraper;
+    private final MeroJobsScraper scraper;
 
-    public JobScraperServiceImpl(JobScraper scraper) {
+    public JobScraperServiceImpl(MeroJobsScraper scraper) {
         this.scraper = scraper;
     }
     @Override
-    public void scrapeJob(String keyword) {
-        scraper.scrapeMeroJobs(keyword);
+    public String scrapeJob(String keyword) {
+        return scraper.scrapeMeroJobs(keyword);
     }
 }

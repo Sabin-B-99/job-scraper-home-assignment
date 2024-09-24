@@ -1,10 +1,9 @@
 package com.homeassignment.jobscraper.controller.scraper;
 
 import com.homeassignment.jobscraper.services.JobScraperService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 
 @RestController
@@ -17,8 +16,10 @@ public class JobScraperController {
         this.jobScraperService = jobScraperService;
     }
 
-    @GetMapping
-    public void scrape(@RequestParam(value = "keyword", defaultValue = "") String keyword){
-        jobScraperService.scrapeJob(keyword);
+    @PostMapping
+    public ResponseEntity<String> scrape(@RequestParam(value = "keyword", defaultValue = "") String keyword){
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                        .body(jobScraperService.scrapeJob(keyword));
     }
 }

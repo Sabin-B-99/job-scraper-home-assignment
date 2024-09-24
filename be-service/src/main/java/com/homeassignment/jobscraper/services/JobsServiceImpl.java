@@ -2,12 +2,15 @@ package com.homeassignment.jobscraper.services;
 
 import com.homeassignment.jobscraper.dtos.JobsResponse;
 import com.homeassignment.jobscraper.entities.Jobs;
+import com.homeassignment.jobscraper.exceptions.JobNotFoundException;
 import com.homeassignment.jobscraper.repositories.JobsRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -30,6 +33,7 @@ public class JobsServiceImpl implements JobsService{
 
     private JobsResponse jobsResponse(Page<Jobs> jobs){
         JobsResponse jobsResponse = new JobsResponse();
+        if(jobs.getContent().isEmpty()) throw new JobNotFoundException("No jobs found. :(", HttpStatus.NOT_FOUND, LocalDateTime.now());
         jobsResponse.setResponseContents(jobs.getContent());
         jobsResponse.setPageNo(jobs.getNumber());
         jobsResponse.setPageSize(jobs.getSize());
@@ -43,7 +47,7 @@ public class JobsServiceImpl implements JobsService{
     public Jobs getJobById(int id) {
         return jobsRepository
                 .getJobsById(id)
-                .orElseThrow(() -> new RuntimeException("Job with id " + id + " not found"));
+                .orElseThrow(() -> new JobNotFoundException("Job with id " + id + " not found. :(", HttpStatus.NOT_FOUND, LocalDateTime.now()));
     }
 
     @Override
