@@ -10,6 +10,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +36,7 @@ public class MeroJobsScraper {
     private int savedJobs;
     private int totalJobsFound;
     private int duplicateCount;
-
+    private final Logger logger = LoggerFactory.getLogger(MeroJobsScraper.class);
 
     public MeroJobsScraper(JobsService jobsService) {
         this.jobsService = jobsService;
@@ -202,7 +204,7 @@ public class MeroJobsScraper {
     private void scrapeJobDetailsAndSaveToDB(List<String> detailPageLinks){
         for (String link : detailPageLinks){
             String detailsUrl = ROOT_URL + link;
-            System.out.println("[Scraping Detail] " + detailsUrl);
+            logger.info("[Scraping Detail] {}", detailsUrl);
             Document detailPageResponse = makeConnectionAndGetResponse(detailsUrl);
             Jobs job = new Jobs();
             job.setJobTitle(scrapeJobTitle(detailPageResponse));
@@ -216,12 +218,12 @@ public class MeroJobsScraper {
             if(!isDuplicate(job)) {
                 jobsService.saveJob(job);
                 savedJobs++;
-                System.out.println("[Data Saved] " + detailsUrl);
+                logger.info("[Data Saved] {}", detailsUrl);
             }else{
-                System.out.println("[Duplicate Job] " + detailsUrl);
+                logger.info("[Duplicate Job] {}", detailsUrl);
                 duplicateCount++;
             }
-            System.out.println("[New Jobs Saved / Duplicate Count / Total Count] " + savedJobs + "/" + duplicateCount +"/"+ totalJobsFound);
+            logger.info("[New Jobs Saved / Duplicate Count / Total Count] {}/{}/{}", savedJobs, duplicateCount, totalJobsFound);
         }
     }
 

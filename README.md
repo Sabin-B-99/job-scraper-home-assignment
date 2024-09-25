@@ -57,9 +57,12 @@ The dependencies are:
       - No migration tools has been used. So, you will need to hit one of the following endpoint 
         after application starts to populate the database tables.
         **Endpoints that can be used to populate the table:**
+        - Use this endpoint below ,with keyword, for pouplating the table with few data for testing purposes. This query is probably going to scrape about 10 to 15 jobs and pouplate it. If you
+        use the other endpoint it will take a lot of time.
         ```
         POST http://localhost:8081/api/scraper?keyword=java
-        ```
+        ``` 
+
         ```
         POST http://localhost:8081/api/scraper
         ```
@@ -83,13 +86,15 @@ The dependencies are:
 ![Scraper response)](./documentation/img/scraper.png)
 
 2. Logs while scraper is running:
-![alt text](./documentation/img/scraper-logs.png)
+![slf4j logger](./documentation/img/proper-logger-logs.png)
+![logged with sys.out](./documentation/img/scraper-logs.png)
+
 
 3. Request to get job by id ```GET localhost:8081/api/jobs/10```
-![alt text](./documentation/img/job-by-id.png)
+![jobs by id](./documentation/img/job-by-id.png)
 
 4. Request to get all jobs ```GET localhost:8081/api/jobs```
-![alt text](./documentation/img/all-jobs.png)
+![all jobs](./documentation/img/all-jobs.png)
 
 5. Request to get jobs by keyword ```GET localhost:8081/api/jobs?keyword=Dotnet```
-![alt text](./documentation/img/jobs-by-keyword.png)
+![jobs by keyword](./documentation/img/jobs-by-keyword.png)
