@@ -92,4 +92,4 @@ The dependencies are:
 ![alt text](./documentation/img/all-jobs.png)
 
 5. Request to get jobs by keyword ```GET localhost:8081/api/jobs?keyword=Dotnet```
-![alt text](./documentation/img/job-by-keyword.png)
+![alt text](./documentation/img/jobs-by-keyword.png)
