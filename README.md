@@ -17,7 +17,7 @@ The application runs on port: **8081 (localhost)**
 
 ```
     Note:
-    The enpoint may result in a timeout exception if there is a large number of jobs to scrape.
+    The endpoint may result in a timeout exception if there is a large number of jobs to scrape.
     But, even though you get a time out exception the script will continue running on the background.
     So, to actually see the scrapers progress please check the logs on the console 
 ```
