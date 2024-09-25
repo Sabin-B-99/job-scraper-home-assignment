@@ -10,25 +10,25 @@ public class Jobs {
     @Column(name = "id")
     private int id;
 
-    @Column(name = "job_title")
+    @Column(name = "job_title", columnDefinition = "VARCHAR(256)", nullable = false)
     private String jobTitle;
 
-    @Column(name = "company_name")
+    @Column(name = "company_name",  columnDefinition = "VARCHAR(256)", nullable = false)
     private String companyName;
 
-    @Column(name = "location")
+    @Column(name = "location", columnDefinition = "VARCHAR(256)", nullable = false)
     private String location;
 
-    @Column(name = "job_description")
+    @Column(name = "job_description",columnDefinition = "TEXT")
     private String jobDescription;
 
-    @Column(name = "job_information")
+    @Column(name = "job_information", columnDefinition = "TEXT")
     private String jobInformation;
 
-    @Column(name = "job_detail_page_link")
+    @Column(name = "job_detail_page_link", columnDefinition = "VARCHAR(256)", nullable = false)
     private String jobDetailPageLink;
 
-    @Column(name = "duplicate_check_hash")
+    @Column(name = "duplicate_check_hash", columnDefinition = "VARCHAR(256)", nullable = false)
     private String duplicateCheckHash;
 
     public Jobs() {

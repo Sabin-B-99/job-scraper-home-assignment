@@ -40,6 +40,11 @@ public class MeroJobsScraper {
         this.jobsService = jobsService;
     }
 
+    /**
+     * Method to start scraper script.
+     * @param keyword  job keywords that can be used to scrape jobs. Scrapes all the job if blank
+     * @return  String indicating the total number of jobs found, saved and duplicates if any
+     * */
     public String scrapeMeroJobs(String keyword){
         totalJobsFound = 0;
         savedJobs = 0;
@@ -51,6 +56,10 @@ public class MeroJobsScraper {
         }
     }
 
+    /**
+     * Implementation of method to scrape all jobs
+     * @return  String indicating the total number of jobs found, saved and duplicates if any
+     * */
     private String scrapeAllJobs(){
         Document initialResponseDocument = searchAll();
         int noOfResultPages = getNumberOfPages(initialResponseDocument);
@@ -63,6 +72,10 @@ public class MeroJobsScraper {
         return "Total jobs found: " + totalJobsFound + " | New  Jobs Saved: " + savedJobs + " | Duplicate jobs: " + duplicateCount;
     }
 
+    /**
+     * Implementation of method to job results matching the keyword. This keyword is used to search in the search bar in the website
+     * @return  String indicating the total number of jobs found, saved and duplicates if any
+     * */
     private String scrapeJobsByKeyword(String keyword){
         Document initialResponseDocument = searchKeyWord(keyword);
         int noOfResultPages = getNumberOfPages(initialResponseDocument);
@@ -75,16 +88,30 @@ public class MeroJobsScraper {
         return "Total jobs found: " + totalJobsFound + " | New  Jobs Saved: " + savedJobs + " | Duplicate jobs: " + duplicateCount;
     }
 
+    /**
+     * Searches for job on the merojob website with given keyword
+     * @param keyword Job keyword to search for on merojob website. Example: java
+     * @return Document response returned by the merojob website after search completes
+     * */
     private Document searchKeyWord(String keyword){
         String searchUrl = ROOT_URL + "/search?q=" + URLEncoder.encode(keyword, StandardCharsets.UTF_8);
         return makeConnectionAndGetResponse(searchUrl);
     }
 
+    /**
+     * Searches all job listings on the merojob website
+     * @return Document response returned by the merojob website after search completes
+     * */
     private Document searchAll(){
         String searchUrl = ROOT_URL + "/search/";
         return makeConnectionAndGetResponse(searchUrl);
     }
 
+    /**
+     * Utility method to make http connection request to a given url
+     * @param url to make connection request
+     * @return Document response returned after successful connection
+     * */
     private Document makeConnectionAndGetResponse(String url){
         try{
             Connection.Response response = Jsoup.connect(url)
@@ -99,8 +126,15 @@ public class MeroJobsScraper {
 
 
 
-    private int getNumberOfPages(Document initalSearchResponseDocument){
-        String jobCount = initalSearchResponseDocument
+    /**
+     * After the initial search request completes, we need to find the total number of pages in the search result.
+     * So, that we can traverse all the page and scrape all the job listing. This method finds the total number of
+     * search result pages from the first page request
+     * @param initialSearchResponseDocument response document from the first request
+     * @return number of search result pages
+     * */
+    private int getNumberOfPages(Document initialSearchResponseDocument){
+        String jobCount = initialSearchResponseDocument
                 .selectFirst("#job-count")
                 .text();
         List<String> matchResult = Pattern.compile("\\d+")
@@ -118,6 +152,11 @@ public class MeroJobsScraper {
         return Math.ceilDiv(totalJobsFound, resultPerPage);
     }
 
+    /**
+     * Method to extract job details page link form the listing page
+     * @param responseDocument listing page document response
+     * @return Arraylist of links of all the job listing in current listing page document response
+     * */
     private List<String> getJobDetailsPageLinkFromListingPage(Document responseDocument){
         Elements detailPageLinks = responseDocument.select("h1[itemprop=title] a");
         List<String> links = new ArrayList<>();
@@ -128,7 +167,13 @@ public class MeroJobsScraper {
         return links;
     }
 
-
+    /**
+     * Method to extract job details page link form the listing pageNo searched with certain keyword.
+     * Used when initial job search request is made with certain keyword. Ex: java
+     * @param keyword job search keyword used to get the listing page response
+     * @param pageNo listing page number
+     * @return Arraylist of links of all the job listing in current listing page no document response
+     * */
     private List<String> getJobDetailsPageLinkFromListingPage(String keyword, int pageNo){
         String searchUrl = ROOT_URL + "/search?q="
                 + URLEncoder.encode(keyword, StandardCharsets.UTF_8)
@@ -136,12 +181,24 @@ public class MeroJobsScraper {
         return getJobDetailsPageLinkFromListingPage(makeConnectionAndGetResponse(searchUrl));
     }
 
+    /**
+     * Method to extract job details page link form the job listing pageNo.
+     * Used when initial job search request is made to search all jobs
+     * @param pageNo listing page number
+     * @return Arraylist of links of all the job listing in current listing page no document response
+     * */
     private List<String> getJobDetailsPageLinkFromListingPage(int pageNo) {
         String searchUrl = ROOT_URL + "/search/"
                 + "?page=" + pageNo;
         return getJobDetailsPageLinkFromListingPage(makeConnectionAndGetResponse(searchUrl));
     }
 
+    /**
+     * Method that requests the job details page document, after links are extracted for listing pages
+     * and scrapes all the required information and saves to the database. Also, checks for duplicates
+     * before saving.
+     * @param detailPageLinks list of links of job details page
+     * */
     private void scrapeJobDetailsAndSaveToDB(List<String> detailPageLinks){
         for (String link : detailPageLinks){
             String detailsUrl = ROOT_URL + link;
@@ -168,6 +225,11 @@ public class MeroJobsScraper {
         }
     }
 
+    /**
+     * Method to check weather a job that has been scraped is duplicate or not.
+     * @param jobs Job to check
+     * @return true if duplicate, false otherwise
+     * */
     private boolean isDuplicate(Jobs jobs){
         Jobs existingJob = jobsService.getDuplicateCheckHashById(jobs.getDuplicateCheckHash());
         if(existingJob == null) return false;
@@ -177,6 +239,11 @@ public class MeroJobsScraper {
                 && existingJob.getDuplicateCheckHash().equals(jobs.getDuplicateCheckHash());
     }
 
+    /**
+     * Method to generate hash that is later used for duplicate job verification
+     * @param jobs Job whose hash is to be generated
+     * @return string representation of SHA-256 hash value
+     * */
     private String hashForDuplicateVerification(Jobs jobs){
         String stringToHash = jobs.getCompanyName() + jobs.getJobTitle() + jobs.getJobDetailPageLink();
         try{

@@ -9,4 +9,4 @@ CREATE TABLE IF NOT EXISTS jobs (
     duplicate_check_hash VARCHAR(256) NOT NULL
 );
 
-SELECT COUNT(*) FROM jobs;
+SELECT * FROM jobs;

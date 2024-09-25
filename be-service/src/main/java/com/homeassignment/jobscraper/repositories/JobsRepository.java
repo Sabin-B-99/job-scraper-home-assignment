@@ -19,8 +19,8 @@ public interface JobsRepository extends PagingAndSortingRepository<Jobs, Integer
     @Query(value = "SELECT * FROM jobs WHERE jobs.id = :id", nativeQuery = true)
     Optional<Jobs> getJobsById(@Param("id") int id);
 
-    @Query(value = "SELECT * FROM jobs WHERE jobs.job_title LIKE '%keyword%' OR jobs.job_description LIKE '%keyword%'",
-        countQuery = "SELECT COUNT(*) FROM jobs WHERE jobs.job_title LIKE '%keyword%' OR jobs.job_description LIKE '%keyword%'",
+    @Query(value = "SELECT * FROM jobs WHERE jobs.job_title ILIKE CONCAT('%',:keyword,'%') OR jobs.job_description ILIKE CONCAT('%',:keyword,'%')",
+        countQuery = "SELECT COUNT(*) FROM jobs WHERE jobs.job_title ILIKE CONCAT('%',:keyword,'%') OR jobs.job_description ILIKE CONCAT('%',:keyword,'%')",
         nativeQuery = true)
     Page<Jobs> getJobsByKeyWord(@Param("keyword") String keyword, Pageable pageable);
 
