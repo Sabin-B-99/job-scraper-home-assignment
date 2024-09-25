@@ -8,3 +8,5 @@ CREATE TABLE IF NOT EXISTS jobs (
     job_detail_page_link VARCHAR(256) NOT NULL,
     duplicate_check_hash VARCHAR(256) NOT NULL
 );
+
+SELECT COUNT(*) FROM jobs;
