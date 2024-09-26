@@ -7,13 +7,13 @@ POST http://localhost:8081/api/scraper
 
 ###
 GET localhost:8081/api/jobs?
-    keyword=java
+    keyword=Dotnet
 
 ###
 GET localhost:8081/api/jobs
 
 ###
-GET localhost:8081/api/jobs/10
+GET localhost:8081/api/jobs/8
 
 ###
 GET http://localhost:8081/api/jobs?

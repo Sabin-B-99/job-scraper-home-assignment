@@ -82,12 +82,11 @@ The dependencies are:
     I was just testing out for writng this readme, so I just used the termnial and curl
 ```
 
-1.Scraper Request```POST http://localhost:8081/api/scraper?keyword=java``` 
+1. Scraper Request```POST http://localhost:8081/api/scraper?keyword=java``` 
 ![Scraper response)](./documentation/img/scraper.png)
 
 2. Logs while scraper is running:
-![slf4j logger](./documentation/img/proper-logger-logs.png)
-![logged with sys.out](./documentation/img/scraper-logs.png)
+![Scraper logs while running](./documentation/img/scraper-logs.png)
 
 
 3. Request to get job by id ```GET localhost:8081/api/jobs/10```

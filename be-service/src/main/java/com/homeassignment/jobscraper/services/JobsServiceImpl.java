@@ -55,8 +55,8 @@ public class JobsServiceImpl implements JobsService{
     }
 
     @Override
-    public void saveJob(Jobs job) {
-        jobsRepository.save(job);
+    public Jobs saveJob(Jobs job) {
+        return jobsRepository.save(job);
     }
 
     @Override

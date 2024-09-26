@@ -216,9 +216,9 @@ public class MeroJobsScraper {
             job.setDuplicateCheckHash(hashForDuplicateVerification(job));
 
             if(!isDuplicate(job)) {
-                jobsService.saveJob(job);
+                Jobs savedJob = jobsService.saveJob(job);
                 savedJobs++;
-                logger.info("[Data Saved] {}", detailsUrl);
+                logger.info("[Data Saved / Job title] {}{} ", detailsUrl, savedJob.getJobTitle());
             }else{
                 logger.info("[Duplicate Job] {}", detailsUrl);
                 duplicateCount++;
