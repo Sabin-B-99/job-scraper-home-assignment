@@ -218,7 +218,7 @@ public class MeroJobsScraper {
             if(!isDuplicate(job)) {
                 Jobs savedJob = jobsService.saveJob(job);
                 savedJobs++;
-                logger.info("[Data Saved / Job title] {}{} ", detailsUrl, savedJob.getJobTitle());
+                logger.info("[Data Saved for link: {}] || Job Title:  {} ", detailsUrl, savedJob.getJobTitle());
             }else{
                 logger.info("[Duplicate Job] {}", detailsUrl);
                 duplicateCount++;
